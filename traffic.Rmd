@@ -52,7 +52,7 @@ output:
   traffic <- traffic[!(traffic$GEO_LON > -100), ]
 ```
 
-### create a new column containing the hour of day of the occurrence
+### create new columns with time components
 ```{r}
   traffic$FIRST_OCCURRENCE_DATE <-
     as.POSIXct(traffic$FIRST_OCCURRENCE_DATE,format="%Y-%m-%d %H:%M:%S")
@@ -121,7 +121,7 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
     coord_flip()
 ```
 
-## Geo and Time Maps
+## Geo and Time Visualizations
 
 ```{r message=FALSE}
   library(ggmap)
@@ -213,7 +213,7 @@ denver_full <- get_map(location =
   grid.arrange(g1, g2, g3, g4, nrow=2)
 ```
 
-### Hit and Run Incidents Involving Bicycles (Red)
+### Hit and Run Incidents Involving Bicycles (Black)
 
 ```{r label='bicycle_hit_run', warning=FALSE}
   g1 <- geom_point(aes(x=traffic$GEO_LON, y=traffic$GEO_LAT),
@@ -425,7 +425,7 @@ denver_full <- get_map(location =
 
 ### Incidents on a Specific Street
 ```{r}
-  length(which(grepl("16TH AVE", bicycles$INCIDENT_ADDRESS)))
+  length(which(grepl("COLFAX", bicycles$INCIDENT_ADDRESS)))
 ```
 
 ## Density Heatmaps
@@ -453,7 +453,8 @@ denver_full <- get_map(location =
    scale_alpha(range = c(0.00, 0.4), guide = FALSE) 
 ```
 
-```{r eval=FALSE}
+### Interactive Map - Bicycle Incidents
+```{r label='leaflet', eval=FALSE}
 
 #  traffic_map <- leaflet() %>%
 #    addTiles() %>%
@@ -464,6 +465,7 @@ denver_full <- get_map(location =
     setView(lng=mean(bicycles$GEO_LON),
             lat=mean(bicycles$GEO_LAT), zoom=12) %>%
     addTiles() %>%
-    addMarkers(lng=bicycles$GEO_LON, lat=bicycles$GEO_LAT)
+    addMarkers(lng=bicycles$GEO_LON, lat=bicycles$GEO_LAT,
+      popup=paste(bicycles$FIRST_OCCURRENCE_DATE, bicycles$OFFENSE_TYPE_ID, "bicycle", bicycles$INCIDENT_ADDRESS, sep=", "))
   bicycle_interactive
 ```

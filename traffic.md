@@ -49,7 +49,7 @@ output:
   traffic <- traffic[!(traffic$GEO_LON > -100), ]
 ```
 
-### create a new column containing the hour of day of the occurrence
+### create new columns with time components
 
 ```r
   traffic$FIRST_OCCURRENCE_DATE <-
@@ -231,7 +231,7 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
 
 ![plot of chunk offense_type](figure/offense_type-1.png) 
 
-## Geo and Time Maps
+## Geo and Time Visualizations
 
 
 ```r
@@ -346,7 +346,7 @@ denver_full <- get_map(location =
 
 ![plot of chunk bicycle_by_time](figure/bicycle_by_time-1.png) 
 
-### Hit and Run Incidents Involving Bicycles (Red)
+### Hit and Run Incidents Involving Bicycles (Black)
 
 
 ```r
@@ -675,11 +675,11 @@ denver_full <- get_map(location =
 ### Incidents on a Specific Street
 
 ```r
-  length(which(grepl("16TH AVE", bicycles$INCIDENT_ADDRESS)))
+  length(which(grepl("COLFAX", bicycles$INCIDENT_ADDRESS)))
 ```
 
 ```
-## [1] 61
+## [1] 159
 ```
 
 ## Density Heatmaps
@@ -694,14 +694,6 @@ denver_full <- get_map(location =
       size = 1.0, bins = 16, geom = 'polygon') +
    scale_fill_gradient(low = "green", high = "red") +
    scale_alpha(range = c(0.00, 0.4), guide = FALSE) 
-```
-
-```
-## Warning: Removed 11589 rows containing non-finite values (stat_density2d).
-```
-
-```
-## Warning: Removed 11589 rows containing non-finite values (stat_density2d).
 ```
 
 ![plot of chunk density_all](figure/density_all-1.png) 
@@ -719,16 +711,9 @@ denver_full <- get_map(location =
    scale_alpha(range = c(0.00, 0.4), guide = FALSE) 
 ```
 
-```
-## Warning: Removed 145 rows containing non-finite values (stat_density2d).
-```
-
-```
-## Warning: Removed 145 rows containing non-finite values (stat_density2d).
-```
-
 ![plot of chunk density_bicycle](figure/density_bicycle-1.png) 
 
+### Interactive Map - Bicycle Incidents
 
 ```r
 #  traffic_map <- leaflet() %>%
@@ -740,6 +725,7 @@ denver_full <- get_map(location =
     setView(lng=mean(bicycles$GEO_LON),
             lat=mean(bicycles$GEO_LAT), zoom=12) %>%
     addTiles() %>%
-    addMarkers(lng=bicycles$GEO_LON, lat=bicycles$GEO_LAT)
+    addMarkers(lng=bicycles$GEO_LON, lat=bicycles$GEO_LAT,
+      popup=paste(bicycles$FIRST_OCCURRENCE_DATE, bicycles$OFFENSE_TYPE_ID, "bicycle", bicycles$INCIDENT_ADDRESS, sep=", "))
   bicycle_interactive
 ```
