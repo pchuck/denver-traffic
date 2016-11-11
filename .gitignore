@@ -2,4 +2,9 @@
 .RHistory
 cache/
 data/
+denver-bicycle-incident-map/data/
 ggmapTemp.png
+.Rproj.user
+*.Rproj
+rsconnect
+
