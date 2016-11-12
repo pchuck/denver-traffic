@@ -6,27 +6,27 @@
 library(shiny)
 library(leaflet)
 
+# build grouping tags from year of occurrence and incident indicator
+tag <- function(year, ind) {
+    paste(toString(year), ind, sep="-")
+}
+
 # hide leaflet layers by group via the mapping proxy
 hide <- function(proxy, min, max) {
     for(year in min:max) {
-        h <- paste(toString(year), "hit", sep="-")
-        hr <- paste(toString(year), "hitandrun", sep="-")
-        proxy %>% hideGroup(h) %>% hideGroup(hr)
+        proxy %>% # hide hit and hit/run groups for the selected years
+            hideGroup(tag(year, HIT_IND)) %>%
+            hideGroup(tag(year, RUN_IND))
     }
 }
 
 # show year and incident type layers by group via the mapping proxy
 show <- function(proxy, min, max, years, hnr) {
-    for(year in min:max) {
+    for(year in min:max) { 
         if(year >= min(years) && year <= max(years)) {
-            h <- paste(toString(year), "hit", sep="-")
-            hr <- paste(toString(year), "hitandrun", sep="-")
-            if(hnr) {
-                proxy %>% showGroup(h) %>% showGroup(hr)
-            }
-            else {
-                proxy %>% showGroup(h)
-            }
+            # show hits and/or runs for the selected years
+            proxy %>% showGroup(tag(year, HIT_IND)) 
+            ifelse(hnr, proxy %>% showGroup(tag(year, RUN_IND)), FALSE)
         }
     }
 }
@@ -39,33 +39,31 @@ function(input, output, session) {
         background <- leaflet() %>%
             setView(lng=mean(traffic$GEO_LON),
                     lat=mean(traffic$GEO_LAT), zoom=12) %>%
-                addProviderTiles("Stamen.TonerLite",
-                                 options = providerTileOptions(noWrap = TRUE))
+            addLegend(colors=c(HIT_COLOR, RUN_COLOR),
+                      labels=c(HIT_TEXT, RUN_TEXT)) %>%
+            addProviderTiles(MAP_TYPE,
+                             options = providerTileOptions(noWrap = TRUE))
 
         # overlay the various groups of interest (year and incident type)
         marked <- background
         for(year in minYear:maxYear) {
             subdata <- bicycles[year==bicycles$OCCURRENCE_YEAR, ]
-            hnr <- subdata[subdata$OFFENSE_TYPE_ID %in%
-                           c("traffic-accident-hit-and-run"), ]
-            nhnr <- subdata[!subdata$OFFENSE_TYPE_ID %in%
-                            c("traffic-accident-hit-and-run"), ]
+            hnr <- subdata[subdata$OFFENSE_TYPE_ID %in% c(HITRUN_ID), ]
+            nhnr <- subdata[!subdata$OFFENSE_TYPE_ID %in% c(HITRUN_ID), ]
             marked <- marked %>%
-                addCircleMarkers(lng=nhnr$GEO_LON,
-                                 lat=nhnr$GEO_LAT,
+                addCircleMarkers(lng=nhnr$GEO_LON, lat=nhnr$GEO_LAT,
                                  popup=paste(nhnr$FIRST_OCCURRENCE_DATE,
-                                     nhnr$OFFENSE_TYPE_ID, "bicycle",
+                                     nhnr$OFFENSE_TYPE_ID, BIKE_IND,
                                      nhnr$INCIDENT_ADDRESS, sep=", "),
-                                 color="red", radius=3.0,
-                                 group=paste(toString(year), "hit",
+                                 color=HIT_COLOR, radius=RADIUS,
+                                 group=paste(toString(year), HIT_IND,
                                      sep="-")) %>%
-                addCircleMarkers(lng=hnr$GEO_LON,
-                                 lat=hnr$GEO_LAT,
+                addCircleMarkers(lng=hnr$GEO_LON, lat=hnr$GEO_LAT,
                                  popup=paste(hnr$FIRST_OCCURRENCE_DATE,
-                                     hnr$OFFENSE_TYPE_ID, "bicycle",
+                                     hnr$OFFENSE_TYPE_ID, BIKE_IND,
                                      hnr$INCIDENT_ADDRESS, sep=", "),
-                                 color="black", radius=3.0,
-                                 group=paste(toString(year), "hitandrun",
+                                 color=RUN_COLOR, radius=RADIUS,
+                                 group=paste(toString(year), RUN_IND,
                                      sep="-"))
         }
         marked
@@ -80,4 +78,3 @@ function(input, output, session) {
                       years, hitandrun)
     })
 }
-

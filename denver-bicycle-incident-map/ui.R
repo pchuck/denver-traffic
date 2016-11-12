@@ -8,21 +8,13 @@ library(leaflet)
 
 shinyUI(
     fluidPage(
-        titlePanel("Denver Traffic Accidents Involving Bicycles: 2011-2016"),
-        fluidRow(
-            leafletOutput("map")
-        ),
+        titlePanel(paste(TITLE, ": ", minYear, "-", maxYear, sep="")),
+        fluidRow(leafletOutput("map")),
         fluidRow(
             column(width=1, ""),
-            column(width=4, 
-                sliderInput("years", "",
-                            min=minYear, max=maxYear,
-                            value = c(minYear, maxYear), sep="")),
-            column(width=4, 
-                   checkboxInput("hitrun", "Hit and Run", FALSE)
-            )
+            column(width=4, sliderInput("years", "", min=minYear, max=maxYear,
+                                        value = c(minYear, maxYear), sep="")),
+            column(width=4, checkboxInput("hitrun", "Hit and Run", FALSE))
         )
     )
 )
-
-
