@@ -9,7 +9,10 @@ library(leaflet)
 shinyUI(
     fluidPage(
         titlePanel(paste(TITLE, ": ", minYear, "-", maxYear, sep="")),
-        fluidRow(leafletOutput("map")),
+        fluidRow(
+            tags$style(type = "text/css",
+                "#map {height: calc(100vh - 150px) !important;}"),
+            leafletOutput("map")),
         fluidRow(
             column(width=1, ""),
             column(width=4, sliderInput("years", "", min=minYear, max=maxYear,
