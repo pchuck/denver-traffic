@@ -14,32 +14,20 @@ output:
 
 ### data source - Denver Open Data
 
-
 ```r
-  traffic_url <- "http://data.denvergov.org/download/gis/traffic_accidents/csv/traffic_accidents.csv"
+  traffic_local <- "data/denver_traffic_accidents_full.csv"
 ```
 
-### save a copy of the data source file offline
+### acquire the data from the open data repository
 
 ```r
-  download.file(url=traffic_url, destfile='data/denver_traffic_accidents.csv', method='wget')
+  traffic_url <- "http://data.denvergov.org/download/gis/traffic_accidents/csv/traffic_accidents.csv""
+  acquireAndSave(traffic_url, traffic_local)
 ```
-
 ### and, read from disk w/ transformation
 
 ```r
-# direct read
-#  traffic <- read.csv( curl(traffic_url), sep=",", header=T )
-
-  traffic <- read.csv("data/denver_traffic_accidents.csv",
-    sep=",", header=TRUE, stringsAsFactors=FALSE, 
-    colClasses=c("OFFENSE_TYPE_ID"="factor", "OFFENSE_CATEGORY_ID"="factor",
-                 "NEIGHBORHOOD_ID"="factor",
-                 "DISTRICT_ID"="factor", "PRECINCT_ID"="factor",
-#                 "FIRST_OCCURRENCE_DATE"="POSIXct", "REPORTED_DATE"="POSIXct", 
-# "LAST_OCCURRENCE_DATE"="POSIXct", - usually blank in this dataset
-                 "OFFENSE_CODE"="factor"
-  ))
+  traffic <- readDenverCrime(traffic_local)
 ```
 
 ### remove points with wildly inconsistent longitudes
@@ -74,8 +62,8 @@ output:
 ### convenient data subsets
 
 ```r
-pedestrians <- traffic[traffic$PEDESTRIAN_IND %in% c(1), ]
-bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
+  pedestrians <- traffic[traffic$PEDESTRIAN_IND %in% c(1), ]
+  bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
 ```
 
 ## exploratory analysis
@@ -110,7 +98,7 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
 ##  $ INCIDENT_ID           : num  2.01e+09 2.01e+09 2.01e+09 2.01e+09 2.01e+09 ...
 ##  $ OFFENSE_ID            : num  2.01e+15 2.01e+15 2.01e+15 2.01e+15 2.01e+15 ...
 ##  $ OFFENSE_CODE          : Factor w/ 5 levels "5401","5420",..: 3 3 3 1 3 3 3 3 3 1 ...
-##  $ OFFENSE_CODE_EXTENSION: int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ OFFENSE_CODE_EXTENSION: Factor w/ 1 level "0": 1 1 1 1 1 1 1 1 1 1 ...
 ##  $ OFFENSE_TYPE_ID       : Factor w/ 5 levels "traf-vehicular-assault",..: 3 3 3 5 3 3 3 3 3 5 ...
 ##  $ OFFENSE_CATEGORY_ID   : Factor w/ 3 levels "all-other-crimes",..: 3 3 3 3 3 3 3 3 3 3 ...
 ##  $ FIRST_OCCURRENCE_DATE : POSIXct, format: "2013-07-17 16:48:59" "2013-05-21 09:04:59" ...
@@ -164,7 +152,7 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
       x="Neighborhood", y="Count", fill="District")
 ```
 
-![plot of chunk neighborhood_counts](figure/neighborhood_counts-1.png) 
+![plot of chunk neighborhood_counts](figure/neighborhood_counts-1.png)
 
 ### Districts and precincts with the most accidents
 
@@ -216,7 +204,7 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
       x="District", y="Count", fill="Precinct")
 ```
 
-![plot of chunk district_counts](figure/district_counts-1.png) 
+![plot of chunk district_counts](figure/district_counts-1.png)
 
 ### Accidents by Offense Type
 
@@ -229,7 +217,7 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
     coord_flip()
 ```
 
-![plot of chunk offense_type](figure/offense_type-1.png) 
+![plot of chunk offense_type](figure/offense_type-1.png)
 
 ## Geo and Time Visualizations
 
@@ -238,10 +226,9 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
   library(ggmap)
   library(gridExtra)
 
-denver_central <- get_map(location="Denver", zoom=13, source="osm")
-denver_full <- get_map(location =
-    c(mean(traffic$GEO_LON), mean(traffic$GEO_LAT)), 
-  zoom=12, source="osm")
+  denver_central <- get_map(location="Denver", zoom=13, source="osm")
+  denver_full <- get_map(location =
+    c(mean(traffic$GEO_LON), mean(traffic$GEO_LAT)), zoom=12, source="osm")
 ```
 
 ### All Traffic Accidents (Yellow)
@@ -258,13 +245,13 @@ denver_full <- get_map(location =
   ggmap(denver_full) + plot
 ```
 
-![plot of chunk all_accidents](figure/all_accidents-1.png) 
+![plot of chunk all_accidents](figure/all_accidents-1.png)
 
 ```r
   ggmap(denver_central) + plot
 ```
 
-![plot of chunk all_accidents](figure/all_accidents-2.png) 
+![plot of chunk all_accidents](figure/all_accidents-2.png)
 
 ### All Accidents by Time
 
@@ -292,7 +279,7 @@ denver_full <- get_map(location =
   grid.arrange(g1, g2, g3, g4, nrow=2)
 ```
 
-![plot of chunk all_by_time](figure/all_by_time-1.png) 
+![plot of chunk all_by_time](figure/all_by_time-1.png)
 
 ### All Incidents Involving Bicycles (Red)
 
@@ -309,13 +296,13 @@ denver_full <- get_map(location =
   ggmap(denver_full) + g1 + g2
 ```
 
-![plot of chunk bicycle_accidents](figure/bicycle_accidents-1.png) 
+![plot of chunk bicycle_accidents](figure/bicycle_accidents-1.png)
 
 ```r
   ggmap(denver_central) + g1 + g2
 ```
 
-![plot of chunk bicycle_accidents](figure/bicycle_accidents-2.png) 
+![plot of chunk bicycle_accidents](figure/bicycle_accidents-2.png)
 
 ### All Incidents Involving Bicycles by Time
 
@@ -344,7 +331,7 @@ denver_full <- get_map(location =
   grid.arrange(g1, g2, g3, g4, nrow=2)
 ```
 
-![plot of chunk bicycle_by_time](figure/bicycle_by_time-1.png) 
+![plot of chunk bicycle_by_time](figure/bicycle_by_time-1.png)
 
 ### Hit and Run Incidents Involving Bicycles (Black)
 
@@ -360,13 +347,13 @@ denver_full <- get_map(location =
   ggmap(denver_full) + g1 + g2
 ```
 
-![plot of chunk bicycle_hit_run](figure/bicycle_hit_run-1.png) 
+![plot of chunk bicycle_hit_run](figure/bicycle_hit_run-1.png)
 
 ```r
   ggmap(denver_central) + g1 + g2
 ```
 
-![plot of chunk bicycle_hit_run](figure/bicycle_hit_run-2.png) 
+![plot of chunk bicycle_hit_run](figure/bicycle_hit_run-2.png)
 
 ### All Hit and Run Incidents Involving Bicycles by Time
 
@@ -406,7 +393,7 @@ denver_full <- get_map(location =
   grid.arrange(g1, g2, g3, g4, nrow=2)
 ```
 
-![plot of chunk bicycle_hit_run_time](figure/bicycle_hit_run_time-1.png) 
+![plot of chunk bicycle_hit_run_time](figure/bicycle_hit_run_time-1.png)
 
 ### Incidents Involving Cyclists - Hit and Run Probability
 
@@ -452,7 +439,7 @@ denver_full <- get_map(location =
     x="Hour of Day", y="Prevalence")
 ```
 
-![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png) 
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9-1.png)
 
 ### General Hit and Run Probability
 
@@ -478,7 +465,7 @@ denver_full <- get_map(location =
     x="Time of Day", y="Prevalence")
 ```
 
-![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png)
 
 ### Accidents Involving Pedestrian (Purple)
 
@@ -492,13 +479,13 @@ denver_full <- get_map(location =
   ggmap(denver_full) + g1 + g2
 ```
 
-![plot of chunk pedestrian_accidents](figure/pedestrian_accidents-1.png) 
+![plot of chunk pedestrian_accidents](figure/pedestrian_accidents-1.png)
 
 ```r
   ggmap(denver_central) + g1 + g2
 ```
 
-![plot of chunk pedestrian_accidents](figure/pedestrian_accidents-2.png) 
+![plot of chunk pedestrian_accidents](figure/pedestrian_accidents-2.png)
 
 ### Hit and Run on Pedestrians (Black)
 
@@ -514,13 +501,13 @@ denver_full <- get_map(location =
   ggmap(denver_full) + g1 + g2
 ```
 
-![plot of chunk pedestrian_hit_run](figure/pedestrian_hit_run-1.png) 
+![plot of chunk pedestrian_hit_run](figure/pedestrian_hit_run-1.png)
 
 ```r
   ggmap(denver_central) + g1 + g2
 ```
 
-![plot of chunk pedestrian_hit_run](figure/pedestrian_hit_run-2.png) 
+![plot of chunk pedestrian_hit_run](figure/pedestrian_hit_run-2.png)
 
 ## Summary Stats
 
@@ -696,7 +683,7 @@ denver_full <- get_map(location =
    scale_alpha(range = c(0.00, 0.4), guide = FALSE) 
 ```
 
-![plot of chunk density_all](figure/density_all-1.png) 
+![plot of chunk density_all](figure/density_all-1.png)
 
 ### Density - Bicycle Incidents
 
@@ -711,21 +698,8 @@ denver_full <- get_map(location =
    scale_alpha(range = c(0.00, 0.4), guide = FALSE) 
 ```
 
-![plot of chunk density_bicycle](figure/density_bicycle-1.png) 
+![plot of chunk density_bicycle](figure/density_bicycle-1.png)
 
 ### Interactive Map - Bicycle Incidents
+[Denver Bicycle Incident Map](https://pchuck.shinyapps.io/denver-bicycle-incident-map/)
 
-```r
-#  traffic_map <- leaflet() %>%
-#    addTiles() %>%
-#    addMarkers(lng=bicycles$GEO_LON, lat=bicycles$GEO_LAT)
-#  traffic_map
-
-  bicycle_interactive <- leaflet() %>%
-    setView(lng=mean(bicycles$GEO_LON),
-            lat=mean(bicycles$GEO_LAT), zoom=12) %>%
-    addTiles() %>%
-    addMarkers(lng=bicycles$GEO_LON, lat=bicycles$GEO_LAT,
-      popup=paste(bicycles$FIRST_OCCURRENCE_DATE, bicycles$OFFENSE_TYPE_ID, "bicycle", bicycles$INCIDENT_ADDRESS, sep=", "))
-  bicycle_interactive
-```

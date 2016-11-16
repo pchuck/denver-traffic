@@ -13,6 +13,7 @@ output:
   if(!require(leaflet)) install.packages("leaflet", dep=T)
   if(!require(ggmap)) install.packages("ggmap", dep=T)
   if(!require(gridExtra)) install.packages("gridExtra", dep=T)
+  source(file="functions.R")
 ```
 
 # Traffic "Accidents" Involving Bicycles in Denver
@@ -20,30 +21,18 @@ output:
 ## data acquisition
 
 ### data source - Denver Open Data
-
 ```{r}
-  traffic_url <- "http://data.denvergov.org/download/gis/traffic_accidents/csv/traffic_accidents.csv"
+  traffic_local <- "data/denver_traffic_accidents_full.csv"
 ```
 
-### save a copy of the data source file offline
+### acquire the data from the open data repository
 ```{r eval=FALSE}
-  download.file(url=traffic_url, destfile='data/denver_traffic_accidents.csv', method='wget')
+  traffic_url <- "http://data.denvergov.org/download/gis/traffic_accidents/csv/traffic_accidents.csv""
+  acquireAndSave(traffic_url, traffic_local)
 ```
-
 ### and, read from disk w/ transformation
 ```{r}
-# direct read
-#  traffic <- read.csv( curl(traffic_url), sep=",", header=T )
-
-  traffic <- read.csv("data/denver_traffic_accidents.csv",
-    sep=",", header=TRUE, stringsAsFactors=FALSE, 
-    colClasses=c("OFFENSE_TYPE_ID"="factor", "OFFENSE_CATEGORY_ID"="factor",
-                 "NEIGHBORHOOD_ID"="factor",
-                 "DISTRICT_ID"="factor", "PRECINCT_ID"="factor",
-#                 "FIRST_OCCURRENCE_DATE"="POSIXct", "REPORTED_DATE"="POSIXct", 
-# "LAST_OCCURRENCE_DATE"="POSIXct", - usually blank in this dataset
-                 "OFFENSE_CODE"="factor"
-  ))
+  traffic <- readDenverCrime(traffic_local)
 ```
 
 ### remove points with wildly inconsistent longitudes
@@ -75,8 +64,8 @@ output:
 
 ### convenient data subsets
 ```{r}
-pedestrians <- traffic[traffic$PEDESTRIAN_IND %in% c(1), ]
-bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
+  pedestrians <- traffic[traffic$PEDESTRIAN_IND %in% c(1), ]
+  bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
 ```
 
 ## exploratory analysis
@@ -127,10 +116,9 @@ bicycles <- traffic[traffic$BICYCLE_IND %in% c(1), ]
   library(ggmap)
   library(gridExtra)
 
-denver_central <- get_map(location="Denver", zoom=13, source="osm")
-denver_full <- get_map(location =
-    c(mean(traffic$GEO_LON), mean(traffic$GEO_LAT)), 
-  zoom=12, source="osm")
+  denver_central <- get_map(location="Denver", zoom=13, source="osm")
+  denver_full <- get_map(location =
+    c(mean(traffic$GEO_LON), mean(traffic$GEO_LAT)), zoom=12, source="osm")
 ```
 
 ### All Traffic Accidents (Yellow)
@@ -454,6 +442,5 @@ denver_full <- get_map(location =
 ```
 
 ### Interactive Map - Bicycle Incidents
-```{r label='leaflet', eval=FALSE}
-  # see traffic-leaflet.R
-```
+[Denver Bicycle Incident Map](https://pchuck.shinyapps.io/denver-bicycle-incident-map/)
+

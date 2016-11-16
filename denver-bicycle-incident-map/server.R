@@ -35,38 +35,7 @@ show <- function(proxy, min, max, years, hnr) {
 function(input, output, session) {
     # render the main map
     output$map <- renderLeaflet({
-        # add the background
-        background <- leaflet() %>%
-            setView(lng=mean(traffic$GEO_LON),
-                    lat=mean(traffic$GEO_LAT), zoom=12) %>%
-            addLegend(colors=c(HIT_COLOR, RUN_COLOR),
-                      labels=c(HIT_TEXT, RUN_TEXT)) %>%
-            addProviderTiles(MAP_TYPE,
-                             options = providerTileOptions(noWrap = TRUE))
-
-        # overlay the various groups of interest (year and incident type)
-        marked <- background
-        for(year in minYear:maxYear) {
-            subdata <- bicycles[year==bicycles$OCCURRENCE_YEAR, ]
-            hnr <- subdata[subdata$OFFENSE_TYPE_ID %in% c(HITRUN_ID), ]
-            nhnr <- subdata[!subdata$OFFENSE_TYPE_ID %in% c(HITRUN_ID), ]
-            marked <- marked %>%
-                addCircleMarkers(lng=nhnr$GEO_LON, lat=nhnr$GEO_LAT,
-                                 popup=paste(nhnr$FIRST_OCCURRENCE_DATE,
-                                     nhnr$OFFENSE_TYPE_ID, BIKE_IND,
-                                     nhnr$INCIDENT_ADDRESS, sep=", "),
-                                 color=HIT_COLOR, radius=RADIUS,
-                                 group=paste(toString(year), HIT_IND,
-                                     sep="-")) %>%
-                addCircleMarkers(lng=hnr$GEO_LON, lat=hnr$GEO_LAT,
-                                 popup=paste(hnr$FIRST_OCCURRENCE_DATE,
-                                     hnr$OFFENSE_TYPE_ID, BIKE_IND,
-                                     hnr$INCIDENT_ADDRESS, sep=", "),
-                                 color=RUN_COLOR, radius=RADIUS,
-                                 group=paste(toString(year), RUN_IND,
-                                     sep="-"))
-        }
-        marked
+        createBicycleIncidentMap(bicycles, OPACITY, ZOOM_LEVEL)
     })
 
     # respond to changes in the date slider or 'hit and run' toggle
