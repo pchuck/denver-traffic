@@ -1,0 +1,2 @@
+# indicate source language of generated files
+gh-pages/*.html linguist-language=R
